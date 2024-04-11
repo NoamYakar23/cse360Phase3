@@ -1,4 +1,4 @@
-package application;
+package main;
 
 import java.text.DecimalFormat;
 
@@ -52,6 +52,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.GridPane;
 
 
@@ -66,83 +67,115 @@ public class homeworkOne extends Application {
 
 
 
-        // Welcome message
-        Label lblWelcome = new Label("Welcome to Heart Health Imaging and Recording System");
-        lblWelcome.setStyle("-fx-font-size: 16px; -fx-text-fill: black;");
-
-        // Buttons with inline CSS for styling
-        Button btnPatientIntake = new Button("Patient Intake");
-        btnPatientIntake.setStyle("-fx-background-color: #0000FF; -fx-text-fill: white;");
-
-
-        Button btnCTScanTechView = new Button("CT Scan Tech View");
-        btnCTScanTechView.setStyle("-fx-background-color: #0000FF; -fx-text-fill: white;");
-
-        Button btnPatientView = new Button("Patient View");
-        btnPatientView.setStyle("-fx-background-color: #0000FF; -fx-text-fill: white;");
-
-        // Event Handlers for buttons to navigate to different scenes
-        btnPatientIntake.setOnAction(e -> showPatientIntakeStage());
-        btnCTScanTechView.setOnAction(e -> showCTScanTechView());
-        btnPatientView.setOnAction(e -> showPatientView(patientID));
-
-        // Layout for Main Scene with alignment and spacing
-        VBox layoutMain = new VBox(10); // 10 is the spacing between elements
-        layoutMain.setAlignment(Pos.CENTER);
-        layoutMain.setStyle("-fx-background-color: #f0f0f0;"); // Light grey background
-        layoutMain.getChildren().addAll(lblWelcome, btnPatientIntake, btnCTScanTechView, btnPatientView);
-
-        Scene mainScene = new Scene(layoutMain, 400, 300); // Adjust the size as needed
-        primaryStage.setTitle("Heart Health Imaging and Recording System");
-        String examplePatientID = "12345";
-        showPatientView(examplePatientID);
-
-        primaryStage.setTitle("Heart Health Imaging and Recording System");
-        primaryStage.setScene(mainScene);
+       
         showLoginScreen(primaryStage);
     }
-    public List<Patient> readPatientData() {
-        List<Patient> patients = new ArrayList<>();
+    public ObservableList<Map<String, String>> readPatientData() {
+        ObservableList<Map<String, String>> allPatients = FXCollections.observableArrayList();
         File folder = new File("./patient_data/");
-        File[] listOfFiles = folder.listFiles();
-        
-        for (File file : listOfFiles) {
-            if (file.isFile()) {
-                // Read each file and create a Patient object
-                // Assume that each file follows a consistent format for patient data
-                // ...
-                // Example of adding a patient (you need to replace this with actual file reading logic)
-                patients.add(new Patient("John Doe", "12345", "+1 555 123 4567", "General Checkup", "Waiting"));
+        File[] listOfFiles = folder.listFiles((dir, name) -> name.toLowerCase().endsWith("_patientinfo.txt"));
+
+        if (listOfFiles != null) {
+            for (File file : listOfFiles) {
+                Map<String, String> patientData = new HashMap<>();
+                try {
+                    List<String> lines = Files.readAllLines(file.toPath());
+                    for (String line : lines) {
+                        String[] parts = line.split(":\\s+", 2);
+                        if (parts.length == 2) {
+                            patientData.put(parts[0].trim(), parts[1].trim());
+                        }
+                    }
+                    allPatients.add(patientData);
+                } catch (IOException e) {
+                    System.out.println("An error occurred while reading file: " + e.getMessage());
+                }
             }
         }
-        
-        return patients;
+
+        return allPatients;
     }
+
 
     public void showPatientListStage() {
         Stage patientListStage = new Stage();
         patientListStage.setTitle("List of Patients");
 
-        TableView<Patient> table = new TableView<>();
-        ObservableList<Patient> data = FXCollections.observableArrayList(readPatientData());
+        TableView<Map<String, String>> table = new TableView<>();
+        ObservableList<Map<String, String>> data = readPatientData();
 
-        TableColumn<Patient, String> nameCol = new TableColumn<>("Name");
-        nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
-        
-        TableColumn<Patient, String> idCol = new TableColumn<>("ID");
-        idCol.setCellValueFactory(new PropertyValueFactory<>("id"));
-        
-        TableColumn<Patient, String> phoneCol = new TableColumn<>("Phone Number");
-        phoneCol.setCellValueFactory(new PropertyValueFactory<>("phoneNumber"));
-        
-        TableColumn<Patient, String> reasonCol = new TableColumn<>("Reason For Visit");
-        reasonCol.setCellValueFactory(new PropertyValueFactory<>("reasonForVisit"));
-        
-        TableColumn<Patient, String> statusCol = new TableColumn<>("Status");
-        statusCol.setCellValueFactory(new PropertyValueFactory<>("status"));
+        // Add Patient ID column for interaction
+        TableColumn<Map<String, String>, String> idColumn = new TableColumn<>("Patient ID");
+        idColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().get("Patient ID")));
+        table.getColumns().add(idColumn);
+
+        // Define columns with the data keys
+        String[] columns = {"First Name", "Last Name", "Phone Number", "Health History", "Insurance ID"};
+        for (String column : columns) {
+            TableColumn<Map<String, String>, String> col = new TableColumn<>(column);
+            col.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().get(column)));
+            table.getColumns().add(col);
+        }
 
         table.setItems(data);
-        table.getColumns().addAll(nameCol, idCol, phoneCol, reasonCol, statusCol);
+
+        // Set row factory for handling clicks
+        table.setRowFactory(tv -> {
+            TableRow<Map<String, String>> row = new TableRow<>();
+            row.setOnMouseClicked(event -> {
+                if (!row.isEmpty() && event.getClickCount() == 1 && event.getButton() == MouseButton.PRIMARY) {
+                    Map<String, String> rowData = row.getItem();
+                    String patientID = rowData.get("Patient ID");
+                    if (patientID != null && !patientID.isEmpty()) {
+                        showNurseView(patientID); // Implement this method as per the previous explanation
+                    }
+                }
+            });
+            return row;
+        });
+
+        VBox vbox = new VBox(table);
+        Scene scene = new Scene(vbox);
+        patientListStage.setScene(scene);
+        patientListStage.show();
+    }
+    
+    public void showPatientListStageDoctor() {
+        Stage patientListStage = new Stage();
+        patientListStage.setTitle("List of Patients");
+
+        TableView<Map<String, String>> table = new TableView<>();
+        ObservableList<Map<String, String>> data = readPatientData();
+
+        // Add Patient ID column for interaction
+        TableColumn<Map<String, String>, String> idColumn = new TableColumn<>("Patient ID");
+        idColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().get("Patient ID")));
+        table.getColumns().add(idColumn);
+
+        // Define columns with the data keys
+        String[] columns = {"First Name", "Last Name", "Phone Number", "Health History", "Insurance ID"};
+        for (String column : columns) {
+            TableColumn<Map<String, String>, String> col = new TableColumn<>(column);
+            col.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().get(column)));
+            table.getColumns().add(col);
+        }
+
+        table.setItems(data);
+
+        // Set row factory for handling clicks
+        table.setRowFactory(tv -> {
+            TableRow<Map<String, String>> row = new TableRow<>();
+            row.setOnMouseClicked(event -> {
+                if (!row.isEmpty() && event.getClickCount() == 1 && event.getButton() == MouseButton.PRIMARY) {
+                    Map<String, String> rowData = row.getItem();
+                    String patientID = rowData.get("Patient ID");
+                    if (patientID != null && !patientID.isEmpty()) {
+                        showDoctorView(patientID); // Implement this method as per the previous explanation
+                    }
+                }
+            });
+            return row;
+        });
 
         VBox vbox = new VBox(table);
         Scene scene = new Scene(vbox);
@@ -150,41 +183,224 @@ public class homeworkOne extends Application {
         patientListStage.show();
     }
 
-    public void DVS(String patientID) {
-    	Stage dvs = new Stage();
-    	dvs.setTitle("Doctor Visit Summary");
+    
+    private void savePatientData(String patientID, String height /*, other parameters */) {
+        String directoryName = "./patient_data/";
+        String fileName = patientID + "_PatientInfo.txt";
+        Path filePath = Paths.get(directoryName, fileName);
+
+        // Read existing data and update it
+        Map<String, String> patientData = getPatientData(patientID);
+        patientData.put("Height", height);
+        // ... update other data
+
+        // Now write this data back to the file
+        try {
+            List<String> lines = new ArrayList<>();
+            patientData.forEach((key, value) -> lines.add(key + ": " + value));
+            Files.write(filePath, lines);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private void showNurseView(String patientID) {
+        Stage nurseStage = new Stage();
+        nurseStage.setTitle("Nurse View for Patient: " + patientID);
+
         GridPane gridPane = new GridPane();
         gridPane.setAlignment(Pos.CENTER);
         gridPane.setPadding(new Insets(10));
         gridPane.setVgap(10);
         gridPane.setHgap(10);
-    	
-    	Map<String, String> patientData = getPatientData(patientID);
 
-        // Create form elements populated with existing patient data
-        TextField txtFirstName = new TextField(patientData.getOrDefault("First Name", ""));
-        TextField txtLastName = new TextField(patientData.getOrDefault("Last Name", ""));
-        TextField txtEmail = new TextField(patientData.getOrDefault("Email", ""));
-        TextField txtPhoneNumber = new TextField(patientData.getOrDefault("Phone Number", ""));
-        TextArea txtHealthHistory = new TextArea(patientData.getOrDefault("Health History", ""));
-        TextField txtInsuranceID = new TextField(patientData.getOrDefault("Insurance ID", ""));
+        // Patient data is assumed to be already retrieved from the file
+        Map<String, String> patientData = getPatientData(patientID);
 
-        // Add form elements to the gridPane
-        gridPane.addRow(0, new Label("First Name:"), txtFirstName);
-        gridPane.addRow(1, new Label("Last Name:"), txtLastName);
-        gridPane.addRow(2, new Label("Email:"), txtEmail);
-        gridPane.addRow(3, new Label("Phone Number:"), txtPhoneNumber);
-        gridPane.addRow(4, new Label("Health History:"), txtHealthHistory);
-        gridPane.addRow(5, new Label("Insurance ID:"), txtInsuranceID);
+        // Display patient information
+        gridPane.add(new Label("Name"), 0, 0);
+        gridPane.add(new Text(patientData.get("First Name") + " " + patientData.get("Last Name")), 1, 0);
+        
+        // ... Other patient details
+        // Retrieve patient data from file
 
-    	
-    	Button edt = new Button("Edit Notes");
-    	VBox layout= new VBox(10,gridPane, edt);
-    	layout.setAlignment(Pos.CENTER);
-    	Scene scene = new Scene(layout, 300, 200);
-    	dvs.setScene(scene);
-    	dvs.show();
+        // Create input fields for nurse to enter new data
+        TextField heightInput = new TextField(patientData.getOrDefault("Height", ""));
+        TextField weightInput = new TextField(patientData.getOrDefault("Weight", ""));
+        TextField bodyTempInput = new TextField(patientData.getOrDefault("Body Temperature", ""));
+        TextField bloodPressureSysInput = new TextField(patientData.getOrDefault("Blood Pressure Systolic", ""));
+        TextField bloodPressureDiaInput = new TextField(patientData.getOrDefault("Blood Pressure Diastolic", ""));
+        TextField currentMedicationsInput = new TextField(patientData.getOrDefault("Current Medications", ""));
+        TextField patientAllergiesInput = new TextField(patientData.getOrDefault("Patient Allergies", ""));
+
+        // Add input fields to the gridPane
+        gridPane.addRow(0, new Label("Height"), heightInput);
+        gridPane.addRow(1, new Label("Weight"), weightInput);
+        gridPane.addRow(2, new Label("Body Temperature"), bodyTempInput);
+        gridPane.addRow(3, new Label("Blood Pressure Systolic"), bloodPressureSysInput);
+        gridPane.addRow(4, new Label("Blood Pressure Diastolic"), bloodPressureDiaInput);
+        gridPane.addRow(5, new Label("Current Medications"), currentMedicationsInput);
+        gridPane.addRow(6, new Label("Patient Allergies"), patientAllergiesInput);
+
+        // Save button with its action
+        Button saveButton = new Button("Save");
+        saveButton.setOnAction(e -> {
+            // Save the new data to the patient's file
+            savePatientData(
+                    patientID,
+                    heightInput.getText(),
+                    weightInput.getText(),
+                    bodyTempInput.getText(),
+                    bloodPressureSysInput.getText(),
+                    bloodPressureDiaInput.getText(),
+                    currentMedicationsInput.getText(),
+                    patientAllergiesInput.getText()
+            );
+            nurseStage.close(); // Close the stage after saving
+        });
+        gridPane.add(saveButton, 1, 7);
+
+        // Add everything to the scene and display it
+        Scene scene = new Scene(gridPane, 400, 600);
+        nurseStage.setScene(scene);
+        nurseStage.show();
     }
+    
+    private void showDoctorView(String patientID) {
+        Stage doctorStage = new Stage();
+        doctorStage.setTitle("Physical Examination for Patient: " + patientID);
+
+        GridPane gridPane = new GridPane();
+        gridPane.setAlignment(Pos.CENTER);
+        gridPane.setPadding(new Insets(10));
+        gridPane.setVgap(10);
+        gridPane.setHgap(10);
+
+        // Patient data is assumed to be already retrieved from the file
+        Map<String, String> patientData = getPatientData(patientID);
+
+        // Display patient information in a non-editable form (using Text instead of TextField)
+        gridPane.add(new Label("Full Name"), 0, 0);
+        gridPane.add(new Text(patientData.getOrDefault("First Name", "") + " " + patientData.getOrDefault("Last Name", "")), 1, 0);
+        gridPane.add(new Label("Insurance ID"), 0, 1);
+        gridPane.add(new Text(patientData.getOrDefault("Insurance ID", "")), 1, 1);
+        gridPane.add(new Label("Height"), 0, 2);
+        gridPane.add(new Text(patientData.getOrDefault("Height", "")), 1, 2);
+        gridPane.add(new Label("Weight"), 0, 3);
+        gridPane.add(new Text(patientData.getOrDefault("Weight", "")), 1, 3);
+        gridPane.add(new Label("Body Temperature"), 0, 4);
+        gridPane.add(new Text(patientData.getOrDefault("Body Temperature", "")), 1, 4);
+        gridPane.add(new Label("Blood Pressure Systolic"), 0, 5);
+        gridPane.add(new Text(patientData.getOrDefault("Blood Pressure Systolic", "")), 1, 5);
+        gridPane.add(new Label("Blood Pressure Diastolic"), 0, 6);
+        gridPane.add(new Text(patientData.getOrDefault("Blood Pressure Diastolic", "")), 1, 6);
+     // Additional fields for the doctor to enter data
+        TextArea notesInput = new TextArea();
+        TextField prescriptionInput = new TextField();
+        TextField frontOfficeInput = new TextField();
+
+        // Adding new fields to the gridPane
+        gridPane.addRow(7, new Label("Notes"), notesInput);
+        gridPane.addRow(8, new Label("Prescription"), prescriptionInput);
+        gridPane.addRow(9, new Label("Front Office"), frontOfficeInput);
+
+        // Complete Visit button
+        Button completeVisitButton = new Button("Complete Visit");
+        completeVisitButton.setOnAction(e -> {
+            savePatientDataDoctor(
+                patientID,
+                notesInput.getText(),
+                prescriptionInput.getText(),
+                frontOfficeInput.getText()
+            );
+            doctorStage.close(); // Close the stage after saving
+        });
+        gridPane.add(completeVisitButton, 1, 10);
+
+        // Add everything to the scene and display it
+        Scene scene = new Scene(gridPane, 400, 600);
+        doctorStage.setScene(scene);
+        doctorStage.show();
+    }
+
+    private void savePatientDataDoctor(
+            String patientID,
+            String notes,
+            String prescription,
+            String frontOffice
+    ) {
+        String directoryName = "./patient_data/";
+        String fileName = patientID + "_PatientInfo.txt";
+        Path filePath = Paths.get(directoryName, fileName);
+
+        try {
+            List<String> lines = Files.readAllLines(filePath);
+            List<String> newLines = new ArrayList<>();
+            boolean bloodPressureFound = false;
+            for (String line : lines) {
+                newLines.add(line);
+                if (!bloodPressureFound && line.startsWith("Blood Pressure Diastolic")) {
+                    bloodPressureFound = true;
+                    // Add new doctor's data after "Blood Pressure" field
+                    newLines.add("Notes: " + notes);
+                    newLines.add("Prescription: " + prescription);
+                    newLines.add("Front Office: " + frontOffice);
+                }
+            }
+
+            // Write the updated content back to the file
+            Files.write(filePath, newLines);
+        } catch (IOException ex) {
+            ex.printStackTrace(); // Handle exceptions appropriately
+        }
+    }
+
+
+    private void savePatientData(
+            String patientID,
+            String height,
+            String weight,
+            String bodyTemperature,
+            String bloodPressureSystolic,
+            String bloodPressureDiastolic,
+            String currentMedications,
+            String patientAllergies
+    ) {
+        String directoryName = "./patient_data/";
+        String fileName = patientID + "_PatientInfo.txt";
+        Path filePath = Paths.get(directoryName, fileName);
+
+        try {
+            // Read all lines up to "Insurance ID"
+            List<String> lines = Files.readAllLines(filePath);
+            List<String> newLines = new ArrayList<>();
+            for (String line : lines) {
+                newLines.add(line);
+                if (line.startsWith("Insurance ID")) {
+                    break;
+                }
+            }
+
+            // Append new data after the "Insurance ID" line
+            String newContent = String.join("\n",
+                    "Height: " + height,
+                    "Weight: " + weight,
+                    "Body Temperature: " + bodyTemperature,
+                    "Blood Pressure Systolic: " + bloodPressureSystolic,
+                    "Blood Pressure Diastolic: " + bloodPressureDiastolic,
+                    "Current Medications: " + currentMedications,
+                    "Patient Allergies: " + patientAllergies
+            );
+            newLines.add(newContent);
+
+            // Write the updated content back to the file
+            Files.write(filePath, newLines);
+        } catch (IOException ex) {
+        }
+    }
+
+
+
 
     private void showBlankStage(String title) {
         VBox layout = new VBox(20); // 20 is the spacing between elements
@@ -210,11 +426,28 @@ public class homeworkOne extends Application {
         Map<String, String> patientData = getPatientData(patientID);
 
         // Create form elements populated with existing patient data
+        Label lblFirstName = new Label("First Name:");
+        lblFirstName.setStyle("-fx-font-weight: bold;");
         TextField txtFirstName = new TextField(patientData.getOrDefault("First Name", ""));
+
+        Label lblLastName = new Label("Last Name:");
+        lblLastName.setStyle("-fx-font-weight: bold;");
         TextField txtLastName = new TextField(patientData.getOrDefault("Last Name", ""));
+
+        Label lblEmail = new Label("Email:");
+        lblEmail.setStyle("-fx-font-weight: bold;");
         TextField txtEmail = new TextField(patientData.getOrDefault("Email", ""));
+
+        Label lblPhoneNumber = new Label("Phone Number:");
+        lblPhoneNumber.setStyle("-fx-font-weight: bold;");
         TextField txtPhoneNumber = new TextField(patientData.getOrDefault("Phone Number", ""));
+
+        Label lblHealthHistory = new Label("Health History:");
+        lblHealthHistory.setStyle("-fx-font-weight: bold;");
         TextArea txtHealthHistory = new TextArea(patientData.getOrDefault("Health History", ""));
+
+        Label lblInsuranceID = new Label("Insurance ID:");
+        lblInsuranceID.setStyle("-fx-font-weight: bold;");
         TextField txtInsuranceID = new TextField(patientData.getOrDefault("Insurance ID", ""));
 
         // Add form elements to the gridPane
@@ -811,9 +1044,8 @@ public class homeworkOne extends Application {
             if ("Nurse".equals(role) && checkCredentials(username, password, role)) {
                 showPatientListStage(); // Show the patient list if the user is a nurse
             }
-            if("Doctor".equals(role)&&checkCredentials(username, password, role))
-            {
-            	showPatientListStage();
+            if ("Doctor".equals(role) && checkCredentials(username, password, role)) {
+            	showPatientListStageDoctor(); 
             }
             else {
                 primaryStage.show();
