@@ -1,10 +1,13 @@
-package main;
+package application;
 
 import java.text.DecimalFormat;
 
 
 // Noam Yakar's Running  Homework 4
 import javafx.application.Application;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.text.Text;
 import java.nio.file.Path;
 
@@ -46,7 +49,14 @@ import java.util.Random;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
+
+
+
+
 
 public class homeworkOne extends Application {
 
@@ -57,18 +67,18 @@ public class homeworkOne extends Application {
 
 
         // Welcome message
-        Label lblWelcome = new Label("Welcome to Clear Health System");
+        Label lblWelcome = new Label("Welcome to Heart Health Imaging and Recording System");
         lblWelcome.setStyle("-fx-font-size: 16px; -fx-text-fill: black;");
 
         // Buttons with inline CSS for styling
-        Button btnPatientIntake = new Button("Patient's View");
+        Button btnPatientIntake = new Button("Patient Intake");
         btnPatientIntake.setStyle("-fx-background-color: #0000FF; -fx-text-fill: white;");
 
 
-        Button btnCTScanTechView = new Button("Nurse's View");
+        Button btnCTScanTechView = new Button("CT Scan Tech View");
         btnCTScanTechView.setStyle("-fx-background-color: #0000FF; -fx-text-fill: white;");
 
-        Button btnPatientView = new Button("Doctor's View");
+        Button btnPatientView = new Button("Patient View");
         btnPatientView.setStyle("-fx-background-color: #0000FF; -fx-text-fill: white;");
 
         // Event Handlers for buttons to navigate to different scenes
@@ -82,7 +92,7 @@ public class homeworkOne extends Application {
         layoutMain.setStyle("-fx-background-color: #f0f0f0;"); // Light grey background
         layoutMain.getChildren().addAll(lblWelcome, btnPatientIntake, btnCTScanTechView, btnPatientView);
 
-        Scene mainScene = new Scene(layoutMain, 900, 500); // Adjust the size as needed
+        Scene mainScene = new Scene(layoutMain, 400, 300); // Adjust the size as needed
         primaryStage.setTitle("Heart Health Imaging and Recording System");
         String examplePatientID = "12345";
         showPatientView(examplePatientID);
@@ -90,6 +100,90 @@ public class homeworkOne extends Application {
         primaryStage.setTitle("Heart Health Imaging and Recording System");
         primaryStage.setScene(mainScene);
         showLoginScreen(primaryStage);
+    }
+    public List<Patient> readPatientData() {
+        List<Patient> patients = new ArrayList<>();
+        File folder = new File("./patient_data/");
+        File[] listOfFiles = folder.listFiles();
+        
+        for (File file : listOfFiles) {
+            if (file.isFile()) {
+                // Read each file and create a Patient object
+                // Assume that each file follows a consistent format for patient data
+                // ...
+                // Example of adding a patient (you need to replace this with actual file reading logic)
+                patients.add(new Patient("John Doe", "12345", "+1 555 123 4567", "General Checkup", "Waiting"));
+            }
+        }
+        
+        return patients;
+    }
+
+    public void showPatientListStage() {
+        Stage patientListStage = new Stage();
+        patientListStage.setTitle("List of Patients");
+
+        TableView<Patient> table = new TableView<>();
+        ObservableList<Patient> data = FXCollections.observableArrayList(readPatientData());
+
+        TableColumn<Patient, String> nameCol = new TableColumn<>("Name");
+        nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
+        
+        TableColumn<Patient, String> idCol = new TableColumn<>("ID");
+        idCol.setCellValueFactory(new PropertyValueFactory<>("id"));
+        
+        TableColumn<Patient, String> phoneCol = new TableColumn<>("Phone Number");
+        phoneCol.setCellValueFactory(new PropertyValueFactory<>("phoneNumber"));
+        
+        TableColumn<Patient, String> reasonCol = new TableColumn<>("Reason For Visit");
+        reasonCol.setCellValueFactory(new PropertyValueFactory<>("reasonForVisit"));
+        
+        TableColumn<Patient, String> statusCol = new TableColumn<>("Status");
+        statusCol.setCellValueFactory(new PropertyValueFactory<>("status"));
+
+        table.setItems(data);
+        table.getColumns().addAll(nameCol, idCol, phoneCol, reasonCol, statusCol);
+
+        VBox vbox = new VBox(table);
+        Scene scene = new Scene(vbox);
+        patientListStage.setScene(scene);
+        patientListStage.show();
+    }
+
+    public void DVS(String patientID) {
+    	Stage dvs = new Stage();
+    	dvs.setTitle("Doctor Visit Summary");
+        GridPane gridPane = new GridPane();
+        gridPane.setAlignment(Pos.CENTER);
+        gridPane.setPadding(new Insets(10));
+        gridPane.setVgap(10);
+        gridPane.setHgap(10);
+    	
+    	Map<String, String> patientData = getPatientData(patientID);
+
+        // Create form elements populated with existing patient data
+        TextField txtFirstName = new TextField(patientData.getOrDefault("First Name", ""));
+        TextField txtLastName = new TextField(patientData.getOrDefault("Last Name", ""));
+        TextField txtEmail = new TextField(patientData.getOrDefault("Email", ""));
+        TextField txtPhoneNumber = new TextField(patientData.getOrDefault("Phone Number", ""));
+        TextArea txtHealthHistory = new TextArea(patientData.getOrDefault("Health History", ""));
+        TextField txtInsuranceID = new TextField(patientData.getOrDefault("Insurance ID", ""));
+
+        // Add form elements to the gridPane
+        gridPane.addRow(0, new Label("First Name:"), txtFirstName);
+        gridPane.addRow(1, new Label("Last Name:"), txtLastName);
+        gridPane.addRow(2, new Label("Email:"), txtEmail);
+        gridPane.addRow(3, new Label("Phone Number:"), txtPhoneNumber);
+        gridPane.addRow(4, new Label("Health History:"), txtHealthHistory);
+        gridPane.addRow(5, new Label("Insurance ID:"), txtInsuranceID);
+
+    	
+    	Button edt = new Button("Edit Notes");
+    	VBox layout= new VBox(10,gridPane, edt);
+    	layout.setAlignment(Pos.CENTER);
+    	Scene scene = new Scene(layout, 300, 200);
+    	dvs.setScene(scene);
+    	dvs.show();
     }
 
     private void showBlankStage(String title) {
@@ -408,23 +502,20 @@ public class homeworkOne extends Application {
         TextField txtLCX = new TextField();
         TextField txtRCA = new TextField();
         TextField txtPDA = new TextField();
-        TextField txtVISIT = new TextField();
 
         // Add all the form fields to the gridPane
-
-        gridPane.addRow(1, new Label("Patient Allergies:"), txtTotalCACScore);
+        gridPane.addRow(0, new Label("Patient ID:"), txtPatientID);
+        gridPane.addRow(1, new Label("The total Agatston CAC score:"), txtTotalCACScore);
         gridPane.add(lblVesselLevelScore, 0, 2, 2, 1); // Span 2 columns
-        gridPane.addRow(3, new Label("Height:"), txtLM);
-        gridPane.addRow(4, new Label("Weight:"), txtLAD);
-        gridPane.addRow(5, new Label("Body Temperature:"), txtLCX);
-        gridPane.addRow(6, new Label("Blood Pressure:"), txtRCA);
-        gridPane.addRow(7, new Label("Current Medications:"), txtPDA);
-        gridPane.addRow(8, new Label("Notes:"), txtVISIT);
-
+        gridPane.addRow(3, new Label("LM:"), txtLM);
+        gridPane.addRow(4, new Label("LAD:"), txtLAD);
+        gridPane.addRow(5, new Label("LCX:"), txtLCX);
+        gridPane.addRow(6, new Label("RCA:"), txtRCA);
+        gridPane.addRow(7, new Label("PDA:"), txtPDA);
 
         Button btnSave = new Button("Save");
         btnSave.setOnAction(e -> {
-            if (isAllFieldsFilled(txtPatientID, txtTotalCACScore, txtLM, txtLAD, txtLCX, txtRCA, txtPDA, txtVISIT)) {
+            if (isAllFieldsFilled(txtPatientID, txtTotalCACScore, txtLM, txtLAD, txtLCX, txtRCA, txtPDA)) {
                 saveCTScanData(txtPatientID.getText(), txtTotalCACScore.getText(),
                         txtLM.getText(), txtLAD.getText(), txtLCX.getText(),
                         txtRCA.getText(), txtPDA.getText());
@@ -433,7 +524,7 @@ public class homeworkOne extends Application {
             }
         });
 
-        gridPane.add(btnSave, 1, 9); // Adjust row index according to your layout
+        gridPane.add(btnSave, 1, 8); // Adjust row index according to your layout
 
         Scene techScene = new Scene(gridPane, 450, 500); // Adjust size as necessary
         techStage.setScene(techScene);
@@ -456,7 +547,7 @@ public class homeworkOne extends Application {
 
         // Construct the content string
         String content = String.format(
-                "Patient ID: %s\nTotal CAC Score: %s\nLM: %s\nLAD: %s\nLCX: %s\nRCA: %s\nPDA:: %s\nVISIT: %s\n",
+                "Patient ID: %s\nTotal CAC Score: %s\nLM: %s\nLAD: %s\nLCX: %s\nRCA: %s\nPDA: %s\n",
                 patientID, totalCACScore, lm, lad, lcx, rca, pda);
 
         try {
@@ -515,7 +606,6 @@ public class homeworkOne extends Application {
                 txtLCX.setText(getValueAfterColon(lines.get(4)));
                 txtRCA.setText(getValueAfterColon(lines.get(5)));
                 txtPDA.setText(getValueAfterColon(lines.get(6)));
-                txtVISIT.setText(getValueAfterColon(lines.get(7)));
             } else {
                 showAlert(Alert.AlertType.INFORMATION, "No Data", "No CT scan data available yet.");
             }
@@ -534,6 +624,12 @@ public class homeworkOne extends Application {
     private void showLoginScreen(Stage primaryStage) {
         Stage loginStage = new Stage();
         loginStage.setTitle("Login");
+
+        // Image setup
+        Image image = new Image("file:clear_health.png"); // Load the image
+        ImageView imageView = new ImageView(image); // Create an ImageView for the image
+        imageView.setFitHeight(150); // Set the height of the image
+        imageView.setPreserveRatio(true); // Preserve the ratio
 
         ComboBox<String> cbRole = new ComboBox<>();
         cbRole.getItems().addAll("Doctor", "Nurse", "Patient");
@@ -559,12 +655,13 @@ public class homeworkOne extends Application {
         btnLogin.setOnAction(e -> handleLogin(cbRole.getValue(), txtUsername.getText(), txtPassword.getText(), loginStage, primaryStage));
         btnSignUp.setOnAction(e -> showSignUpScreen());
 
-        VBox layout = new VBox(10, cbRole, txtUsername, txtPassword, btnLogin, btnSignUp);
+        VBox layout = new VBox(10);
+        layout.getChildren().addAll(imageView, cbRole, txtUsername, txtPassword, btnLogin, btnSignUp);
         layout.setAlignment(Pos.CENTER);
         layout.setPadding(new Insets(15, 20, 15, 20));
         layout.setStyle("-fx-background-color: #F5F5F5;");
 
-        Scene scene = new Scene(layout, 350, 250);
+        Scene scene = new Scene(layout, 350, 400); // Adjust the size based on your image and layout needs
         loginStage.setScene(scene);
         loginStage.show();
     }
@@ -710,7 +807,15 @@ public class homeworkOne extends Application {
             loginStage.close(); // Close the login window
             if ("Patient".equals(role)) {
                 showPatientView(getPatientIDByUsername(username));
-            } else {
+            } // Inside your login handling method
+            if ("Nurse".equals(role) && checkCredentials(username, password, role)) {
+                showPatientListStage(); // Show the patient list if the user is a nurse
+            }
+            if("Doctor".equals(role)&&checkCredentials(username, password, role))
+            {
+            	showPatientListStage();
+            }
+            else {
                 primaryStage.show();
             }
         }
