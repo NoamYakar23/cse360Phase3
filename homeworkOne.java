@@ -904,7 +904,7 @@ public class homeworkOne extends Application {
         if (usernameExists(username)) {
             showAlert(Alert.AlertType.ERROR, "Error", "Username already exists.");
         } else {
-.
+
             String newPatientID = generatePatientID();
             writeUserToFile(username, password, "Patient", newPatientID);
             addDefaultAppointments(newPatientID);
