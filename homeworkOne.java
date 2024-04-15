@@ -96,7 +96,7 @@ public class homeworkOne extends Application {
         return allPatients;
     }
 
-
+    // Show patients in a list for nurse view with javafx table
     public void showPatientListStage() {
         Stage patientListStage = new Stage();
         patientListStage.setTitle("List of Patients");
@@ -104,12 +104,11 @@ public class homeworkOne extends Application {
         TableView<Map<String, String>> table = new TableView<>();
         ObservableList<Map<String, String>> data = readPatientData();
 
-        // Add Patient ID column for interaction
+
         TableColumn<Map<String, String>, String> idColumn = new TableColumn<>("Patient ID");
         idColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().get("Patient ID")));
         table.getColumns().add(idColumn);
 
-        // Define columns with the data keys
         String[] columns = {"First Name", "Last Name", "Phone Number", "Health History", "Insurance ID"};
         for (String column : columns) {
             TableColumn<Map<String, String>, String> col = new TableColumn<>(column);
@@ -119,7 +118,6 @@ public class homeworkOne extends Application {
 
         table.setItems(data);
 
-        // Set row factory for handling clicks
         table.setRowFactory(tv -> {
             TableRow<Map<String, String>> row = new TableRow<>();
             row.setOnMouseClicked(event -> {
@@ -127,7 +125,7 @@ public class homeworkOne extends Application {
                     Map<String, String> rowData = row.getItem();
                     String patientID = rowData.get("Patient ID");
                     if (patientID != null && !patientID.isEmpty()) {
-                        showNurseView(patientID); // Implement this method as per the previous explanation
+                        showNurseView(patientID);
                     }
                 }
             });
@@ -139,7 +137,8 @@ public class homeworkOne extends Application {
         patientListStage.setScene(scene);
         patientListStage.show();
     }
-    
+
+    // Same as above function but for doctor
     public void showPatientListStageDoctor() {
         Stage patientListStage = new Stage();
         patientListStage.setTitle("List of Patients");
@@ -147,12 +146,12 @@ public class homeworkOne extends Application {
         TableView<Map<String, String>> table = new TableView<>();
         ObservableList<Map<String, String>> data = readPatientData();
 
-        // Add Patient ID column for interaction
+
         TableColumn<Map<String, String>, String> idColumn = new TableColumn<>("Patient ID");
         idColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().get("Patient ID")));
         table.getColumns().add(idColumn);
 
-        // Define columns with the data keys
+
         String[] columns = {"First Name", "Last Name", "Phone Number", "Health History", "Insurance ID"};
         for (String column : columns) {
             TableColumn<Map<String, String>, String> col = new TableColumn<>(column);
@@ -162,7 +161,7 @@ public class homeworkOne extends Application {
 
         table.setItems(data);
 
-        // Set row factory for handling clicks
+
         table.setRowFactory(tv -> {
             TableRow<Map<String, String>> row = new TableRow<>();
             row.setOnMouseClicked(event -> {
@@ -170,7 +169,7 @@ public class homeworkOne extends Application {
                     Map<String, String> rowData = row.getItem();
                     String patientID = rowData.get("Patient ID");
                     if (patientID != null && !patientID.isEmpty()) {
-                        showDoctorView(patientID); // Implement this method as per the previous explanation
+                        showDoctorView(patientID);
                     }
                 }
             });
@@ -184,17 +183,14 @@ public class homeworkOne extends Application {
     }
 
     
-    private void savePatientData(String patientID, String height /*, other parameters */) {
+    private void savePatientData(String patientID, String height) {
         String directoryName = "./patient_data/";
         String fileName = patientID + "_PatientInfo.txt";
         Path filePath = Paths.get(directoryName, fileName);
 
-        // Read existing data and update it
         Map<String, String> patientData = getPatientData(patientID);
         patientData.put("Height", height);
-        // ... update other data
 
-        // Now write this data back to the file
         try {
             List<String> lines = new ArrayList<>();
             patientData.forEach((key, value) -> lines.add(key + ": " + value));
@@ -214,17 +210,13 @@ public class homeworkOne extends Application {
         gridPane.setVgap(10);
         gridPane.setHgap(10);
 
-        // Patient data is assumed to be already retrieved from the file
+
         Map<String, String> patientData = getPatientData(patientID);
 
-        // Display patient information
+
         gridPane.add(new Label("Name"), 0, 0);
         gridPane.add(new Text(patientData.get("First Name") + " " + patientData.get("Last Name")), 1, 0);
-        
-        // ... Other patient details
-        // Retrieve patient data from file
 
-        // Create input fields for nurse to enter new data
         TextField heightInput = new TextField(patientData.getOrDefault("Height", ""));
         TextField weightInput = new TextField(patientData.getOrDefault("Weight", ""));
         TextField bodyTempInput = new TextField(patientData.getOrDefault("Body Temperature", ""));
@@ -233,7 +225,7 @@ public class homeworkOne extends Application {
         TextField currentMedicationsInput = new TextField(patientData.getOrDefault("Current Medications", ""));
         TextField patientAllergiesInput = new TextField(patientData.getOrDefault("Patient Allergies", ""));
 
-        // Add input fields to the gridPane
+
         gridPane.addRow(0, new Label("Height"), heightInput);
         gridPane.addRow(1, new Label("Weight"), weightInput);
         gridPane.addRow(2, new Label("Body Temperature"), bodyTempInput);
@@ -242,10 +234,10 @@ public class homeworkOne extends Application {
         gridPane.addRow(5, new Label("Current Medications"), currentMedicationsInput);
         gridPane.addRow(6, new Label("Patient Allergies"), patientAllergiesInput);
 
-        // Save button with its action
+
         Button saveButton = new Button("Save");
         saveButton.setOnAction(e -> {
-            // Save the new data to the patient's file
+
             savePatientData(
                     patientID,
                     heightInput.getText(),
@@ -256,11 +248,11 @@ public class homeworkOne extends Application {
                     currentMedicationsInput.getText(),
                     patientAllergiesInput.getText()
             );
-            nurseStage.close(); // Close the stage after saving
+            nurseStage.close();
         });
         gridPane.add(saveButton, 1, 7);
 
-        // Add everything to the scene and display it
+
         Scene scene = new Scene(gridPane, 400, 600);
         nurseStage.setScene(scene);
         nurseStage.show();
@@ -276,10 +268,8 @@ public class homeworkOne extends Application {
         gridPane.setVgap(10);
         gridPane.setHgap(10);
 
-        // Patient data is assumed to be already retrieved from the file
         Map<String, String> patientData = getPatientData(patientID);
 
-        // Display patient information in a non-editable form (using Text instead of TextField)
         gridPane.add(new Label("Full Name"), 0, 0);
         gridPane.add(new Text(patientData.getOrDefault("First Name", "") + " " + patientData.getOrDefault("Last Name", "")), 1, 0);
         gridPane.add(new Label("Insurance ID"), 0, 1);
@@ -294,17 +284,16 @@ public class homeworkOne extends Application {
         gridPane.add(new Text(patientData.getOrDefault("Blood Pressure Systolic", "")), 1, 5);
         gridPane.add(new Label("Blood Pressure Diastolic"), 0, 6);
         gridPane.add(new Text(patientData.getOrDefault("Blood Pressure Diastolic", "")), 1, 6);
-     // Additional fields for the doctor to enter data
+
         TextArea notesInput = new TextArea();
         TextField prescriptionInput = new TextField();
         TextField frontOfficeInput = new TextField();
 
-        // Adding new fields to the gridPane
         gridPane.addRow(7, new Label("Notes"), notesInput);
         gridPane.addRow(8, new Label("Prescription"), prescriptionInput);
         gridPane.addRow(9, new Label("Front Office"), frontOfficeInput);
 
-        // Complete Visit button
+
         Button completeVisitButton = new Button("Complete Visit");
         completeVisitButton.setOnAction(e -> {
             savePatientDataDoctor(
@@ -313,11 +302,11 @@ public class homeworkOne extends Application {
                 prescriptionInput.getText(),
                 frontOfficeInput.getText()
             );
-            doctorStage.close(); // Close the stage after saving
+            doctorStage.close();
         });
         gridPane.add(completeVisitButton, 1, 10);
 
-        // Add everything to the scene and display it
+
         Scene scene = new Scene(gridPane, 400, 600);
         doctorStage.setScene(scene);
         doctorStage.show();
@@ -341,17 +330,16 @@ public class homeworkOne extends Application {
                 newLines.add(line);
                 if (!bloodPressureFound && line.startsWith("Blood Pressure Diastolic")) {
                     bloodPressureFound = true;
-                    // Add new doctor's data after "Blood Pressure" field
+
                     newLines.add("Notes: " + notes);
                     newLines.add("Prescription: " + prescription);
                     newLines.add("Front Office: " + frontOffice);
                 }
             }
 
-            // Write the updated content back to the file
             Files.write(filePath, newLines);
         } catch (IOException ex) {
-            ex.printStackTrace(); // Handle exceptions appropriately
+            ex.printStackTrace();
         }
     }
 
@@ -371,7 +359,6 @@ public class homeworkOne extends Application {
         Path filePath = Paths.get(directoryName, fileName);
 
         try {
-            // Read all lines up to "Insurance ID"
             List<String> lines = Files.readAllLines(filePath);
             List<String> newLines = new ArrayList<>();
             for (String line : lines) {
@@ -381,7 +368,7 @@ public class homeworkOne extends Application {
                 }
             }
 
-            // Append new data after the "Insurance ID" line
+
             String newContent = String.join("\n",
                     "Height: " + height,
                     "Weight: " + weight,
@@ -393,7 +380,7 @@ public class homeworkOne extends Application {
             );
             newLines.add(newContent);
 
-            // Write the updated content back to the file
+
             Files.write(filePath, newLines);
         } catch (IOException ex) {
         }
@@ -403,9 +390,9 @@ public class homeworkOne extends Application {
 
 
     private void showBlankStage(String title) {
-        VBox layout = new VBox(20); // 20 is the spacing between elements
+        VBox layout = new VBox(20);
         layout.setAlignment(Pos.CENTER);
-        Scene scene = new Scene(layout, 400, 300); // Adjust the size as needed
+        Scene scene = new Scene(layout, 400, 300);
         Stage stage = new Stage();
         stage.setTitle(title);
         stage.setScene(scene);
@@ -422,10 +409,10 @@ public class homeworkOne extends Application {
         gridPane.setVgap(10);
         gridPane.setHgap(10);
 
-        // Retrieve patient data from file
+
         Map<String, String> patientData = getPatientData(patientID);
 
-        // Create form elements populated with existing patient data
+
         Label lblFirstName = new Label("First Name:");
         lblFirstName.setStyle("-fx-font-weight: bold;");
         TextField txtFirstName = new TextField(patientData.getOrDefault("First Name", ""));
@@ -450,7 +437,7 @@ public class homeworkOne extends Application {
         lblInsuranceID.setStyle("-fx-font-weight: bold;");
         TextField txtInsuranceID = new TextField(patientData.getOrDefault("Insurance ID", ""));
 
-        // Add form elements to the gridPane
+
         gridPane.addRow(0, new Label("First Name:"), txtFirstName);
         gridPane.addRow(1, new Label("Last Name:"), txtLastName);
         gridPane.addRow(2, new Label("Email:"), txtEmail);
@@ -523,22 +510,22 @@ public class homeworkOne extends Application {
         String fileName = patientID + "_Appointments.txt";
         Path filePath = Paths.get(directoryName, fileName);
 
-        System.out.println("Looking for appointments in file: " + filePath.toString()); // Print the file path being checked
+        System.out.println("Looking for appointments in file: " + filePath.toString());
 
         try {
             if (Files.exists(filePath)) {
                 List<String> lines = Files.readAllLines(filePath);
-                System.out.println("Contents of " + fileName + ":"); // Print the file name being read
+                System.out.println("Contents of " + fileName + ":");
                 for (String line : lines) {
-                    System.out.println(line); // Print each line read from the file
+                    System.out.println(line);
                     layout.getChildren().add(new Label(line));
                 }
             } else {
-                System.out.println("No appointments file found for patient ID: " + patientID); // Inform if the file doesn't exist
+                System.out.println("No appointments file found for patient ID: " + patientID);
                 layout.getChildren().add(new Label("No upcoming appointments."));
             }
         } catch (IOException ex) {
-            System.out.println("Failed to read the file: " + filePath.toString()); // Print error if file reading fails
+            System.out.println("Failed to read the file: " + filePath.toString());
             showAlert(Alert.AlertType.ERROR, "Error", "Failed to load appointments.");
         }
 
@@ -558,7 +545,6 @@ public class homeworkOne extends Application {
             while ((line = reader.readLine()) != null) {
                 String[] userData = line.split(",");
                 if (userData[0].equals(username) && userData[2].equals("Patient")) {
-                    // Return the patient ID if username matches and the role is Patient
                 	System.out.println("whats good" + userData[3]);
                     return userData[3];
                 }
@@ -567,7 +553,7 @@ public class homeworkOne extends Application {
             System.out.println("Error checking username: " + e.getMessage());
         }
 
-        // Return empty string if username is not found or if an error occurs
+
         return "";
     }
 
@@ -598,7 +584,7 @@ public class homeworkOne extends Application {
         Stage intakeStage = new Stage();
         intakeStage.setTitle("Patient Intake Form");
 
-        // Create the form elements
+
         GridPane gridPane = new GridPane();
         gridPane.setAlignment(Pos.CENTER);
         gridPane.setPadding(new Insets(10));
@@ -606,7 +592,7 @@ public class homeworkOne extends Application {
         gridPane.setHgap(10);
 
 
-        // add relevant field for the user to enter
+
         Label lblFirstName = new Label("First Name:");
         TextField txtFirstName = new TextField();
         gridPane.add(lblFirstName, 0, 0);
@@ -655,15 +641,14 @@ public class homeworkOne extends Application {
 
 
     private void savePatientInfo(String firstName, String lastName, String email, String phone, String healthHistory, String insuranceID) {
-        // Generate a unique 5-digit patient ID
         String patientID = generatePatientID();
-        String directoryName = "patient_data"; // Name of the folder to store patient data files
+        String directoryName = "patient_data";
         String fileName = patientID + "_PatientInfo.txt";
 
-        // Ensure the directory exists
+
         Paths.get(directoryName).toFile().mkdirs();
 
-        // Create the file path including the directory
+
         String filePath = Paths.get(directoryName, fileName).toString();
 
         String content = "Patient ID: " + patientID + "\n" +
@@ -675,7 +660,6 @@ public class homeworkOne extends Application {
                 "Insurance ID: " + insuranceID;
 
         try {
-            // Save the patient info to a file within the directory
             Files.write(Paths.get(filePath), content.getBytes());
             showAlert(Alert.AlertType.INFORMATION, "Information Saved", "Patient information has been saved successfully in 'patient_data' directory.");
         } catch (IOException ex) {
@@ -705,7 +689,6 @@ public class homeworkOne extends Application {
              BufferedWriter bw = new BufferedWriter(fw);
              PrintWriter out = new PrintWriter(bw)) {
 
-            // Write username, password, role, and patient ID to the file
             out.println(username + "," + password + "," + role + "," + patientID);
             System.out.println("Login details saved to: " + userFile.getAbsolutePath());
 
@@ -726,20 +709,18 @@ public class homeworkOne extends Application {
         gridPane.setVgap(10);
         gridPane.setHgap(10);
 
-        // Fields for the form
         TextField txtPatientID = new TextField();
         TextField txtTotalCACScore = new TextField();
-        Label lblVesselLevelScore = new Label("Vessel level Agatston CAC score"); // New label
+        Label lblVesselLevelScore = new Label("Vessel level Agatston CAC score");
         TextField txtLM = new TextField();
         TextField txtLAD = new TextField();
         TextField txtLCX = new TextField();
         TextField txtRCA = new TextField();
         TextField txtPDA = new TextField();
 
-        // Add all the form fields to the gridPane
         gridPane.addRow(0, new Label("Patient ID:"), txtPatientID);
         gridPane.addRow(1, new Label("The total Agatston CAC score:"), txtTotalCACScore);
-        gridPane.add(lblVesselLevelScore, 0, 2, 2, 1); // Span 2 columns
+        gridPane.add(lblVesselLevelScore, 0, 2, 2, 1);
         gridPane.addRow(3, new Label("LM:"), txtLM);
         gridPane.addRow(4, new Label("LAD:"), txtLAD);
         gridPane.addRow(5, new Label("LCX:"), txtLCX);
@@ -757,9 +738,9 @@ public class homeworkOne extends Application {
             }
         });
 
-        gridPane.add(btnSave, 1, 8); // Adjust row index according to your layout
+        gridPane.add(btnSave, 1, 8);
 
-        Scene techScene = new Scene(gridPane, 450, 500); // Adjust size as necessary
+        Scene techScene = new Scene(gridPane, 450, 500);
         techStage.setScene(techScene);
         techStage.show();
     }
@@ -778,7 +759,6 @@ public class homeworkOne extends Application {
         String directoryName = "patient_data";
         String fileName = patientID + "CTResults.txt";
 
-        // Construct the content string
         String content = String.format(
                 "Patient ID: %s\nTotal CAC Score: %s\nLM: %s\nLAD: %s\nLCX: %s\nRCA: %s\nPDA: %s\n",
                 patientID, totalCACScore, lm, lad, lcx, rca, pda);
@@ -810,7 +790,7 @@ public class homeworkOne extends Application {
                 List<String> lines = Files.readAllLines(filePath);
                 for (String line : lines) {
                     if (line.startsWith("First Name:")) {
-                        return line.substring(line.indexOf(":") + 1).trim(); // Returns the name after the colon
+                        return line.substring(line.indexOf(":") + 1).trim();
                     }
                 }
             } catch (IOException ex) {
@@ -819,7 +799,7 @@ public class homeworkOne extends Application {
         } else {
             showAlert(Alert.AlertType.ERROR, "Error", "Patient ID does not exist.");
         }
-        return ""; // Return empty if name is not found or if there's an error
+        return "";
     }
 
 
@@ -832,7 +812,6 @@ public class homeworkOne extends Application {
             if (Files.exists(filePath)) {
                 List<String> lines = Files.readAllLines(filePath);
 
-                // Assuming the data is in the same order as the form
                 txtTotalCACScore.setText(getValueAfterColon(lines.get(1)));
                 txtLM.setText(getValueAfterColon(lines.get(2)));
                 txtLAD.setText(getValueAfterColon(lines.get(3)));
@@ -858,11 +837,10 @@ public class homeworkOne extends Application {
         Stage loginStage = new Stage();
         loginStage.setTitle("Login");
 
-        // Image setup
-        Image image = new Image("file:clear_health.png"); // Load the image
-        ImageView imageView = new ImageView(image); // Create an ImageView for the image
-        imageView.setFitHeight(150); // Set the height of the image
-        imageView.setPreserveRatio(true); // Preserve the ratio
+        Image image = new Image("file:clear_health.png");
+        ImageView imageView = new ImageView(image);
+        imageView.setFitHeight(150);
+        imageView.setPreserveRatio(true);
 
         ComboBox<String> cbRole = new ComboBox<>();
         cbRole.getItems().addAll("Doctor", "Nurse", "Patient");
@@ -894,7 +872,7 @@ public class homeworkOne extends Application {
         layout.setPadding(new Insets(15, 20, 15, 20));
         layout.setStyle("-fx-background-color: #F5F5F5;");
 
-        Scene scene = new Scene(layout, 350, 400); // Adjust the size based on your image and layout needs
+        Scene scene = new Scene(layout, 350, 400);
         loginStage.setScene(scene);
         loginStage.show();
     }
@@ -926,10 +904,10 @@ public class homeworkOne extends Application {
         if (usernameExists(username)) {
             showAlert(Alert.AlertType.ERROR, "Error", "Username already exists.");
         } else {
-            // New user, so generate patient ID, write user to file, etc.
+.
             String newPatientID = generatePatientID();
-            writeUserToFile(username, password, "Patient", newPatientID); // Pass the generated patient ID
-            addDefaultAppointments(newPatientID); // Call addDefaultAppointments here
+            writeUserToFile(username, password, "Patient", newPatientID);
+            addDefaultAppointments(newPatientID);
             showAlert(Alert.AlertType.INFORMATION, "Sign Up Successful", "Patient account created successfully. Default appointments added.");
             signUpStage.close();
         }
@@ -1007,15 +985,12 @@ public class homeworkOne extends Application {
         if (!userFile.exists()) {
             try {
                 userFile.createNewFile();
-                // Write default credentials for doctors and nurses
                 try (FileWriter fw = new FileWriter(userFile, true);
                      BufferedWriter bw = new BufferedWriter(fw);
                      PrintWriter out = new PrintWriter(bw)) {
 
-                    // Example credentials
                     out.println("doctor1,password,Doctor");
                     out.println("nurse1,password,Nurse");
-                    // Add more as needed
 
                 } catch (IOException e) {
                     System.out.println("An error occurred while writing to the user file: " + e.getMessage());
@@ -1034,15 +1009,15 @@ public class homeworkOne extends Application {
             showAlert(Alert.AlertType.ERROR, "Error", "Invalid credentials.");
             handleLoginAttempt(loginStage);
         } else {
-            // Successful login
-            setCurrentUser(username);  // Set the current user in the file
+
+            setCurrentUser(username);
             loginAttemptCount = 0;
-            loginStage.close(); // Close the login window
+            loginStage.close();
             if ("Patient".equals(role)) {
                 showPatientView(getPatientIDByUsername(username));
-            } // Inside your login handling method
+            }
             if ("Nurse".equals(role) && checkCredentials(username, password, role)) {
-                showPatientListStage(); // Show the patient list if the user is a nurse
+                showPatientListStage();
             }
             if ("Doctor".equals(role) && checkCredentials(username, password, role)) {
             	showPatientListStageDoctor(); 
@@ -1068,7 +1043,7 @@ public class homeworkOne extends Application {
             return new String(Files.readAllBytes(Paths.get(fileName))).trim();
         } catch (IOException e) {
             System.out.println("An error occurred while reading the current_user file: " + e.getMessage());
-            return "";  // Return empty string in case of error
+            return "";
         }
     }
 
@@ -1079,7 +1054,7 @@ public class homeworkOne extends Application {
         if (loginAttemptCount >= MAX_LOGIN_ATTEMPTS) {
             showAlert(Alert.AlertType.ERROR, "Error", "Maximum login attempts exceeded.");
             loginStage.close();
-            System.exit(0); // or any other handling
+            System.exit(0);
         }
     }
 
